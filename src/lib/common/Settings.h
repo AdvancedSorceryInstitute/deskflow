@@ -14,6 +14,7 @@
 #include "common/Constants.h"
 #include "common/NetworkProtocol.h"
 #include "common/QSettingsProxy.h"
+#include "deskflow/OptionTypes.h"
 
 class QFileSystemWatcher;
 class Settings : public QObject
@@ -191,6 +192,7 @@ public:
   static QString logLevelText();
   static QSettingsProxy &proxy();
   static NetworkProtocol networkProtocol();
+  static RelativeMouseMode relativeMouseMode();
   static void save(bool emitSaving = true);
   static QStringList validKeys();
   static QStringList validGroups();
@@ -341,7 +343,6 @@ private:
     , Server::EnableSwitchDelay
     , Server::EnableSwitchDoubleTap
     , Server::ExternalConfig
-    , Server::RelativeMouseMoves
   };
 
   // When checking the default values this list contains the ones that default to true.

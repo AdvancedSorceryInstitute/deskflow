@@ -84,7 +84,7 @@ void ServerConfigDialog::save()
   Settings::setValue(Settings::Server::DisableLockToComputer, m_disableLockToComputer);
   Settings::setValue(Settings::Server::EnableSwitchDoubleTap, m_enableSwitchDoubleTap);
   Settings::setValue(Settings::Server::SwitchDoubleTap, m_switchDoubleTap);
-  Settings::setValue(Settings::Server::RelativeMouseMoves, m_relativeMouseMoves);
+  Settings::setValue(Settings::Server::RelativeMouseMoves, static_cast<int>(m_relativeMouseMode));
   Settings::setValue(Settings::Server::Win32KeepForeground, m_win32keepForeground);
   Settings::setValue(Settings::Server::ExternalConfig, ui->groupExternalConfig->isChecked());
   Settings::setValue(Settings::Server::ExternalConfigFile, ui->lineConfigFile->text());
@@ -265,11 +265,16 @@ void ServerConfigDialog::setHeartbeat(int rate)
   setButtonBoxEnabledButtons();
 }
 
-void ServerConfigDialog::toggleRelativeMouseMoves(bool enabled)
+void ServerConfigDialog::setRelativeMouseMode(int index)
 {
-  if (m_relativeMouseMoves == enabled)
+  if (index < 0)
     return;
-  m_relativeMouseMoves = enabled;
+
+  // コンボボックスの並び順は RelativeMouseMode の値と一致させてある
+  const auto mode = relativeMouseModeFromValue(static_cast<OptionValue>(index));
+  if (m_relativeMouseMode == mode)
+    return;
+  m_relativeMouseMode = mode;
   setButtonBoxEnabledButtons();
 }
 
@@ -383,7 +388,7 @@ void ServerConfigDialog::loadFromConfig()
   m_protocol = Settings::networkProtocol();
   m_enableHeartbeat = Settings::value(Settings::Server::EnableHeatbeat).toBool();
   m_heartbeatRate = Settings::value(Settings::Server::Heartbeat).toInt();
-  m_relativeMouseMoves = Settings::value(Settings::Server::RelativeMouseMoves).toBool();
+  m_relativeMouseMode = Settings::relativeMouseMode();
   m_win32keepForeground = Settings::value(Settings::Server::Win32KeepForeground).toBool();
   m_enableSwitchDelay = Settings::value(Settings::Server::EnableSwitchDelay).toBool();
   m_switchDelay = Settings::value(Settings::Server::SwitchDelay).toInt();
@@ -439,7 +444,7 @@ void ServerConfigDialog::refreshControls()
   ui->cbHeartbeat->setChecked(m_enableHeartbeat);
   ui->sbHeartbeat->setEnabled(ui->cbHeartbeat->isChecked());
   ui->sbHeartbeat->setValue(m_heartbeatRate);
-  ui->cbRelativeMouseMoves->setChecked(m_relativeMouseMoves);
+  ui->comboRelativeMouseMoves->setCurrentIndex(static_cast<int>(m_relativeMouseMode));
   ui->cbWin32KeepForeground->setChecked(m_win32keepForeground);
   ui->cbSwitchDelay->setChecked(m_enableSwitchDelay);
   ui->sbSwitchDelay->setEnabled(ui->cbSwitchDelay->isChecked());
@@ -493,7 +498,9 @@ void ServerConfigDialog::initConnections() const
       ui->sbSwitchDoubleTap, QOverload<int>::of(&QSpinBox::valueChanged), this, &ServerConfigDialog::setSwitchDoubleTap
   );
 
-  connect(ui->cbRelativeMouseMoves, &QCheckBox::toggled, this, &ServerConfigDialog::toggleRelativeMouseMoves);
+  connect(
+      ui->comboRelativeMouseMoves, &QComboBox::currentIndexChanged, this, &ServerConfigDialog::setRelativeMouseMode
+  );
   connect(ui->cbEnableClipboard, &QCheckBox::toggled, this, &ServerConfigDialog::toggleClipboard);
   connect(ui->btnBrowseConfigFile, &QPushButton::clicked, this, &ServerConfigDialog::browseConfigFile);
   connect(ui->groupExternalConfig, &QGroupBox::toggled, this, &ServerConfigDialog::toggleExternalConfig);
@@ -523,7 +530,8 @@ void ServerConfigDialog::updateControls() const
   ui->rbProtocolBarrier->setEnabled(writable);
   ui->rbProtocolSynergy->setEnabled(writable);
   ui->cbHeartbeat->setEnabled(writable);
-  ui->cbRelativeMouseMoves->setEnabled(writable);
+  ui->comboRelativeMouseMoves->setEnabled(writable);
+  ui->lblRelativeMouseMoves->setEnabled(writable);
   ui->cbSwitchDelay->setEnabled(writable);
   ui->cbWin32KeepForeground->setEnabled(writable);
   ui->cbSwitchDoubleTap->setEnabled(writable);
@@ -538,7 +546,8 @@ void ServerConfigDialog::restoreFromDefaults()
   m_protocol = networkProtocolFromString(Settings::defaultValue(Settings::Server::Protocol).toString());
   m_enableHeartbeat = Settings::defaultValue(Settings::Server::EnableHeatbeat).toBool();
   m_heartbeatRate = Settings::defaultValue(Settings::Server::Heartbeat).toInt();
-  m_relativeMouseMoves = Settings::defaultValue(Settings::Server::RelativeMouseMoves).toBool();
+  m_relativeMouseMode =
+      static_cast<RelativeMouseMode>(Settings::defaultValue(Settings::Server::RelativeMouseMoves).toInt());
   m_win32keepForeground = Settings::defaultValue(Settings::Server::Win32KeepForeground).toBool();
   m_enableSwitchDelay = Settings::defaultValue(Settings::Server::EnableSwitchDelay).toBool();
   m_switchDelay = Settings::defaultValue(Settings::Server::SwitchDelay).toInt();
@@ -594,7 +603,7 @@ bool ServerConfigDialog::isGeneralConfigModified() const
          m_switchDelay != Settings::value(Settings::Server::SwitchDelay).toInt() ||
          m_enableSwitchDoubleTap != Settings::value(Settings::Server::EnableSwitchDoubleTap).toBool() ||
          m_switchDoubleTap != Settings::value(Settings::Server::SwitchDoubleTap).toInt() ||
-         m_relativeMouseMoves != Settings::value(Settings::Server::RelativeMouseMoves).toBool() ||
+         m_relativeMouseMode != Settings::relativeMouseMode() ||
          m_win32keepForeground != Settings::value(Settings::Server::Win32KeepForeground).toBool() ||
          m_disableLockToComputer != Settings::value(Settings::Server::DisableLockToComputer).toBool() ||
          m_defaultLockToComputerState != Settings::value(Settings::Server::DefaultLockToComputerState).toBool();
@@ -613,7 +622,8 @@ bool ServerConfigDialog::isGeneralConfigDefault() const
          m_switchDelay == Settings::defaultValue(Settings::Server::SwitchDelay).toInt() &&
          m_enableSwitchDoubleTap == Settings::defaultValue(Settings::Server::EnableSwitchDoubleTap).toBool() &&
          m_switchDoubleTap == Settings::defaultValue(Settings::Server::SwitchDoubleTap).toInt() &&
-         m_relativeMouseMoves == Settings::defaultValue(Settings::Server::RelativeMouseMoves).toBool() &&
+         m_relativeMouseMode ==
+             static_cast<RelativeMouseMode>(Settings::defaultValue(Settings::Server::RelativeMouseMoves).toInt()) &&
          m_win32keepForeground == Settings::defaultValue(Settings::Server::Win32KeepForeground).toBool() &&
          m_disableLockToComputer == Settings::defaultValue(Settings::Server::DisableLockToComputer).toBool() &&
          m_defaultLockToComputerState == Settings::defaultValue(Settings::Server::DefaultLockToComputerState).toBool();

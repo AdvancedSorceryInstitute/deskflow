@@ -15,6 +15,7 @@
 #include "deskflow/ClipboardTypes.h"
 #include "deskflow/KeyTypes.h"
 #include "deskflow/MouseTypes.h"
+#include "deskflow/OptionTypes.h"
 #include "server/Config.h"
 
 #include <climits>
@@ -456,7 +457,7 @@ private:
   bool m_switchTwoTapArmed = false;
 
   // relative mouse move option
-  bool m_relativeMoves = false;
+  RelativeMouseMode m_relativeMode = RelativeMouseMode::Never;
 
   // flag whether or not we have broadcasting enabled and the screens to
   // which we should send broadcasted keys.

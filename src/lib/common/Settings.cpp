@@ -251,6 +251,9 @@ QVariant Settings::defaultValue(const QString &key)
   if (key == Server::ClipboardSize)
     return 3; // 3 MiB
 
+  if (key == Server::RelativeMouseMoves)
+    return static_cast<int>(RelativeMouseMode::Never);
+
   return QVariant();
 }
 
@@ -262,6 +265,21 @@ QSettingsProxy &Settings::proxy()
 NetworkProtocol Settings::networkProtocol()
 {
   return networkProtocolFromString(Settings::value(Server::Protocol).toString());
+}
+
+RelativeMouseMode Settings::relativeMouseMode()
+{
+  using enum RelativeMouseMode;
+  const auto stored = Settings::value(Server::RelativeMouseMoves);
+
+  // 旧い設定ファイルには真偽値として書かれている。ini から読むと "true" / "false" の
+  // 文字列で返って数値変換に失敗するため、その場合だけ旧形式として解釈する。
+  bool isNumber = false;
+  const auto mode = stored.toInt(&isNumber);
+  if (!isNumber)
+    return stored.toBool() ? WhenLocked : Never;
+
+  return relativeMouseModeFromValue(static_cast<OptionValue>(mode));
 }
 
 void Settings::save(bool emitSaving)

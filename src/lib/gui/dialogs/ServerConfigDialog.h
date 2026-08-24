@@ -11,6 +11,7 @@
 #include "ScreenSetupModel.h"
 #include "common/NetworkProtocol.h"
 #include "config/ServerConfig.h"
+#include "deskflow/OptionTypes.h"
 
 #include <QDialog>
 
@@ -65,7 +66,7 @@ protected:
   void toggleHeartbeat(bool enabled);
   void setHeartbeat(int rate);
 
-  void toggleRelativeMouseMoves(bool enabled);
+  void setRelativeMouseMode(int index);
   void toggleProtocol();
 
   void toggleExternalConfig(bool enable = false);
@@ -109,7 +110,7 @@ private:
   int m_switchDelay;
   int m_switchDoubleTap;
   uint m_clipboardSize;
-  bool m_relativeMouseMoves;
+  RelativeMouseMode m_relativeMouseMode;
   bool m_enableSwitchDelay;
   bool m_enableSwitchDoubleTap;
   bool m_originalServerConfigIsExternal;

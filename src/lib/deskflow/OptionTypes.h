@@ -71,4 +71,28 @@ inline static const auto s_bottomRightCornerMask = 1 << 3;
 inline static const auto s_allCornersMask = 1 << 0 | 1 << 1 | 1 << 2 | 1 << 3;
 //@}
 
+//! @name 相対マウス移動モード
+//@{
+//! kOptionRelativeMouseMoves がとる値
+/*!
+0 以外を「相対移動が有効」とみなすクライアントが存在するため、Never と WhenLocked の
+数値は変更できない。そうしたクライアントに Always を送ると WhenLocked 相当に解釈される。
+*/
+enum class RelativeMouseMode : OptionValue
+{
+  Never = 0,
+  WhenLocked = 1,
+  Always = 2
+};
+
+inline RelativeMouseMode relativeMouseModeFromValue(OptionValue value)
+{
+  using enum RelativeMouseMode;
+  // 上の取り決めを保つため、未知の値は Never ではなく WhenLocked に倒す
+  if (value == static_cast<OptionValue>(Always))
+    return Always;
+  return (value != 0) ? WhenLocked : Never;
+}
+//@}
+
 #undef OPTION_CODE

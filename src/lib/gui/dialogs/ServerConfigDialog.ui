@@ -358,14 +358,53 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="cbRelativeMouseMoves">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>Use &amp;relative mouse movements</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="layoutRelativeMouseMoves">
+            <item>
+             <widget class="QLabel" name="lblRelativeMouseMoves">
+              <property name="text">
+               <string>Use &amp;relative mouse movements</string>
+              </property>
+              <property name="buddy">
+               <cstring>comboRelativeMouseMoves</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="spacerRelativeMouseMoves">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboRelativeMouseMoves">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string>Never</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Only when locked to a computer</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Always</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QCheckBox" name="cbWin32KeepForeground">
@@ -919,7 +958,7 @@ Enabling this setting will disable the server config GUI.</string>
   <tabstop>sbClipboardSizeLimit</tabstop>
   <tabstop>cbHeartbeat</tabstop>
   <tabstop>sbHeartbeat</tabstop>
-  <tabstop>cbRelativeMouseMoves</tabstop>
+  <tabstop>comboRelativeMouseMoves</tabstop>
   <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>

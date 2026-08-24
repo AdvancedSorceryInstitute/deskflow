@@ -181,7 +181,7 @@ void MSWindowsDesks::leave(HKL keyLayout)
 void MSWindowsDesks::resetOptions()
 {
   m_leaveForegroundOption = false;
-  m_relativeMouseMoves = false;
+  m_relativeMouseMode = RelativeMouseMode::Never;
   for (auto &entry : m_desks) {
     entry.second->m_hasRelativeRestorePosition = false;
   }
@@ -194,7 +194,7 @@ void MSWindowsDesks::setOptions(const OptionsList &options)
       m_leaveForegroundOption = (options[i + 1] != 0);
       LOG_VERBOSE("%s the foreground window", m_leaveForegroundOption ? "don\'t grab" : "grab");
     } else if (options[i] == kOptionRelativeMouseMoves) {
-      m_relativeMouseMoves = (options[i + 1] != 0);
+      m_relativeMouseMode = relativeMouseModeFromValue(static_cast<OptionValue>(options[i + 1]));
     }
   }
 }
@@ -535,7 +535,7 @@ void MSWindowsDesks::deskEnter(Desk *desk)
 {
   if (!m_isPrimary) {
     ReleaseCapture();
-    if (m_relativeMouseMoves) {
+    if (m_relativeMouseMode == RelativeMouseMode::WhenLocked) {
       restoreRelativeCursorPosition(desk);
     }
   }
@@ -561,7 +561,7 @@ void MSWindowsDesks::deskEnter(Desk *desk)
 
 void MSWindowsDesks::deskLeave(Desk *desk, HKL keyLayout)
 {
-  if (!m_isPrimary && m_relativeMouseMoves) {
+  if (!m_isPrimary && m_relativeMouseMode == RelativeMouseMode::WhenLocked) {
     saveRelativeRestorePosition(desk);
   }
 

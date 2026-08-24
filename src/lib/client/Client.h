@@ -191,6 +191,7 @@ public:
   std::string getName() const override;
 
 private:
+  bool usesRelativeRestorePosition() const;
   void saveRelativeRestorePosition();
   void sendClipboard(ClipboardID);
   void sendEvent(deskflow::EventTypes);
@@ -238,7 +239,7 @@ private:
   IEventQueue *m_events = nullptr;
   bool m_useSecureNetwork = false;
   bool m_enableClipboard = true;
-  bool m_relativeMouseMoves = false;
+  RelativeMouseMode m_relativeMouseMode = RelativeMouseMode::Never;
   bool m_hasRelativeRestorePosition = false;
   int32_t m_relativeRestoreX = 0;
   int32_t m_relativeRestoreY = 0;

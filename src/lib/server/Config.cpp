@@ -468,7 +468,7 @@ void Config::readSectionOptions(ConfigReadContext &s)
       "", kOptionDefaultLockToScreenState, Settings::value(Settings::Server::DefaultLockToComputerState).toBool()
   );
   addOption("", kOptionDisableLockToScreen, Settings::value(Settings::Server::DisableLockToComputer).toBool());
-  addOption("", kOptionRelativeMouseMoves, Settings::value(Settings::Server::RelativeMouseMoves).toBool());
+  addOption("", kOptionRelativeMouseMoves, static_cast<OptionValue>(Settings::relativeMouseMode()));
   addOption("", kOptionWin32KeepForeground, Settings::value(Settings::Server::Win32KeepForeground).toBool());
   addOption("", kOptionClipboardSharing, Settings::value(Settings::Server::EnableClipboard).toBool());
   addOption("", kOptionClipboardSharingSize, Settings::value(Settings::Server::ClipboardSize).toUInt() * 1024);
@@ -1061,10 +1061,21 @@ std::string Config::getOptionValue(OptionID id, OptionValue value)
 {
   if (id == kOptionHalfDuplexCapsLock || id == kOptionHalfDuplexNumLock || id == kOptionHalfDuplexScrollLock ||
       id == kOptionScreenSwitchNeedsShift || id == kOptionScreenSwitchNeedsControl ||
-      id == kOptionScreenSwitchNeedsAlt || id == kOptionXTestXineramaUnaware || id == kOptionRelativeMouseMoves ||
-      id == kOptionWin32KeepForeground || id == kOptionScreenPreserveFocus || id == kOptionClipboardSharing ||
-      id == kOptionClipboardSharingSize) {
+      id == kOptionScreenSwitchNeedsAlt || id == kOptionXTestXineramaUnaware || id == kOptionWin32KeepForeground ||
+      id == kOptionScreenPreserveFocus || id == kOptionClipboardSharing || id == kOptionClipboardSharingSize) {
     return (value != 0) ? "true" : "false";
+  }
+  if (id == kOptionRelativeMouseMoves) {
+    switch (static_cast<RelativeMouseMode>(value)) {
+    case RelativeMouseMode::WhenLocked:
+      return "whenLocked";
+
+    case RelativeMouseMode::Always:
+      return "always";
+
+    default:
+      return "never";
+    }
   }
   if (id == kOptionModifierMapForShift || id == kOptionModifierMapForControl || id == kOptionModifierMapForAlt ||
       id == kOptionModifierMapForAltGr || id == kOptionModifierMapForMeta || id == kOptionModifierMapForSuper) {

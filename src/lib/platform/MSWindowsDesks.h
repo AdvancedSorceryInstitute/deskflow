@@ -281,7 +281,7 @@ private:
 
   // options
   bool m_leaveForegroundOption;
-  bool m_relativeMouseMoves = false;
+  RelativeMouseMode m_relativeMouseMode = RelativeMouseMode::Never;
 
   IEventQueue *m_events;
 };

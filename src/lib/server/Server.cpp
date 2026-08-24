@@ -1015,7 +1015,7 @@ uint32_t Server::getCorner(const BaseClientProxy *client, int32_t x, int32_t y, 
 
 void Server::stopRelativeMoves()
 {
-  if (m_relativeMoves && m_active != m_primaryClient) {
+  if (m_relativeMode != RelativeMouseMode::Never && m_active != m_primaryClient) {
     // warp to the center of the active client so we know where we are
     int32_t ax;
     int32_t ay;
@@ -1071,7 +1071,7 @@ void Server::processOptions()
     return;
   }
 
-  bool newRelativeMoves = m_relativeMoves;
+  RelativeMouseMode newRelativeMode = m_relativeMode;
   for (auto [optionId, optionValue] : *options) {
     const OptionID id = optionId;
     const OptionValue value = optionValue;
@@ -1088,7 +1088,7 @@ void Server::processOptions()
       }
       stopSwitchTwoTap();
     } else if (id == kOptionRelativeMouseMoves) {
-      newRelativeMoves = (value != 0);
+      newRelativeMode = relativeMouseModeFromValue(value);
     } else if (id == kOptionDefaultLockToScreenState) {
       m_defaultLockToScreenState = (value != 0);
     } else if (id == kOptionDisableLockToScreen) {
@@ -1110,10 +1110,10 @@ void Server::processOptions()
       }
     }
   }
-  if (m_relativeMoves && !newRelativeMoves) {
+  if (m_relativeMode != RelativeMouseMode::Never && newRelativeMode == RelativeMouseMode::Never) {
     stopRelativeMoves();
   }
-  m_relativeMoves = newRelativeMoves;
+  m_relativeMode = newRelativeMode;
   m_protocol = Settings::networkProtocol();
 }
 
@@ -1715,16 +1715,19 @@ void Server::onMouseMoveSecondary(int32_t dx, int32_t dy)
     return;
   }
 
-  // if doing relative motion on secondary screens and we're locked
-  // to the screen (which activates relative moves) then send a
-  // relative mouse motion.  when we're doing this we pretend as if
-  // the mouse isn't actually moving because we're expecting some
-  // program on the secondary screen to warp the mouse on us, so we
-  // have no idea where it really is.
-  if (m_relativeMoves && isLockedToScreenServer()) {
+  // 相対移動を送った場合は絶対座標を送ってはならない。副スクリーン上のプログラム
+  // (3D ゲームなど) がカーソルをワープさせるため、m_x/m_y は実際のカーソル位置ではなく
+  // 画面端の判定にだけ使う仮想的な位置になる。
+  const bool sentRelative = (m_relativeMode == RelativeMouseMode::Always) ||
+                            (m_relativeMode == RelativeMouseMode::WhenLocked && isLockedToScreenServer());
+  if (sentRelative) {
     LOG_VERBOSE("relative move on %s by %d,%d", getName(m_active).c_str(), dx, dy);
     m_active->mouseRelativeMove(dx, dy);
-    return;
+
+    // ロック中は画面を切り替えられないため、仮想位置の更新も端の判定も要らない
+    if (isLockedToScreenServer()) {
+      return;
+    }
   }
 
   // save old position
@@ -1856,7 +1859,7 @@ void Server::onMouseMoveSecondary(int32_t dx, int32_t dy)
     }
 
     // warp cursor if it moved.
-    if (m_x != xOld || m_y != yOld) {
+    if (!sentRelative && (m_x != xOld || m_y != yOld)) {
       LOG_VERBOSE("move on %s to %d,%d", getName(m_active).c_str(), m_x, m_y);
       m_active->mouseMove(m_x, m_y);
     }

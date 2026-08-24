@@ -171,7 +171,7 @@ void Client::handshakeComplete()
 {
   m_ready = true;
   m_screen->enable();
-  if (m_relativeMouseMoves && !m_hasRelativeRestorePosition) {
+  if (usesRelativeRestorePosition() && !m_hasRelativeRestorePosition) {
     saveRelativeRestorePosition();
   }
   sendEvent(EventTypes::ClientConnected);
@@ -220,7 +220,7 @@ void Client::getCursorPos(int32_t &x, int32_t &y) const
 void Client::enter(int32_t xAbs, int32_t yAbs, uint32_t, KeyModifierMask mask, bool)
 {
   m_active = true;
-  if (m_relativeMouseMoves && m_hasRelativeRestorePosition) {
+  if (usesRelativeRestorePosition() && m_hasRelativeRestorePosition) {
     xAbs = m_relativeRestoreX;
     yAbs = m_relativeRestoreY;
     LOG_VERBOSE("using relative restore position: %d,%d", xAbs, yAbs);
@@ -231,7 +231,7 @@ void Client::enter(int32_t xAbs, int32_t yAbs, uint32_t, KeyModifierMask mask, b
 
 bool Client::leave()
 {
-  if (m_relativeMouseMoves) {
+  if (usesRelativeRestorePosition()) {
     saveRelativeRestorePosition();
   }
   m_active = false;
@@ -316,7 +316,7 @@ void Client::screensaver(bool activate)
 
 void Client::resetOptions()
 {
-  m_relativeMouseMoves = false;
+  m_relativeMouseMode = RelativeMouseMode::Never;
   m_hasRelativeRestorePosition = false;
   m_screen->resetOptions();
 }
@@ -346,8 +346,8 @@ void Client::setOptions(const OptionsList &options)
     } else if (id == kOptionRelativeMouseMoves) {
       index++;
       if (index != options.end()) {
-        m_relativeMouseMoves = (*index != 0);
-        if (m_relativeMouseMoves && m_ready && !m_hasRelativeRestorePosition) {
+        m_relativeMouseMode = relativeMouseModeFromValue(static_cast<OptionValue>(*index));
+        if (usesRelativeRestorePosition() && m_ready && !m_hasRelativeRestorePosition) {
           saveRelativeRestorePosition();
         }
       }
@@ -360,6 +360,14 @@ void Client::setOptions(const OptionsList &options)
   }
 
   m_screen->setOptions(options);
+}
+
+bool Client::usesRelativeRestorePosition() const
+{
+  // WhenLocked では相対移動中にサーバ側の座標が更新されないため、戻ってきたときに
+  // 送られる絶対座標は当てにならない。Always ではサーバの仮想位置と実カーソルを
+  // 一致させたいので復元しない。
+  return m_relativeMouseMode == RelativeMouseMode::WhenLocked;
 }
 
 void Client::saveRelativeRestorePosition()
