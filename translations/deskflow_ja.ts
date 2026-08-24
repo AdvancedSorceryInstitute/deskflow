@@ -982,6 +982,18 @@ Additionally, check you are able to %1 the server config file: %2</source>
         <translation>マウスの相対移動を使用する(&amp;R)</translation>
     </message>
     <message>
+        <source>Never</source>
+        <translation>使用しない</translation>
+    </message>
+    <message>
+        <source>Only when locked to a computer</source>
+        <translation>コンピューターにロックしているときのみ</translation>
+    </message>
+    <message>
+        <source>Always</source>
+        <translation>常に使用する</translation>
+    </message>
+    <message>
         <source>Don&apos;t take &amp;foreground window (Windows only)</source>
         <translation>前面ウィンドウのフォーカスを奪わないようにする(&amp;F) (Windows のみ)</translation>
     </message>
